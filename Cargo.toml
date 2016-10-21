@@ -1,0 +1,15 @@
+[package]
+name = "compress-cidr"
+version = "0.0.1"
+authors = ["Stefan Bühler <buehler@cert.uni-stuttgart.de>"]
+
+[dependencies]
+num-traits = "0.1.36"
+getopts = { version = "0.2", optional = true }
+clap = { version = "2.14.0", features = ["unstable"], optional = true }
+
+[features]
+default = ["cli_getopts"]
+
+cli_clap = ["clap"]
+cli_getopts = ["getopts"]
