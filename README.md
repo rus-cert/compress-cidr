@@ -12,12 +12,19 @@ CIDR rule.
 `compress-cidr` can also build the complement of a set, or generate a
 list of non-overlapping but covering CIDR rules.
 
+# Build
+
+`compress-cidr` is implemented in [rust](https://www.rust-lang.org) and
+uses [cargo](https://crates.io/) for dependency management.
+
+Run `cargo build --release` to build it.
+
 # Examples
 
 ## Compress with small sub range excluded
 
 ```
-# compress-cidr -6 <<EOF
+# ./target/release/compress-cidr -6 <<EOF
 ::/3
 4000::/2
 8000::/1
@@ -34,7 +41,7 @@ exclude 2000::/3
 ## Generate non-overlapping coverage
 
 ```
-# compress-cidr -6 -c <<EOF
+# ./target/release/compress-cidr -6 -c <<EOF
 ::/3
 4000::/2
 8000::/1
@@ -56,7 +63,7 @@ By creating a non-overlapping coverage and only looking at the include
 rules one can get an aggregated list:
 
 ```
-# compress-cidr -6 -c <<EOF | grep include | cut -d' ' -f2
+# ./target/release/compress-cidr -6 -c <<EOF | grep include | cut -d' ' -f2
 ::/8
 100::/8
 200::/7
