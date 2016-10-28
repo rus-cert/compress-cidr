@@ -4,7 +4,7 @@ Given a set of IP addresses through a list of CIDR ranges, the list of
 CIDR ranges can grow very big (especially for IPv6), if small
 (sub)ranges are excluded from the set.
 
-`compress-cidr` can generate a list of CIDR rules, included and
+`compress-cidr` can generate a list of CIDR rules, including and
 excluding ranges from the set; to check whether a single address is
 included one needs to take a look at the rule with the longest matching
 CIDR rule.
