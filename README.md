@@ -63,7 +63,7 @@ By creating a non-overlapping coverage and only looking at the include
 rules one can get an aggregated list:
 
 ```
-# ./target/release/compress-cidr -6 -c <<EOF | grep include | cut -d' ' -f2
+# ./target/release/compress-cidr -6 -a <<EOF
 ::/8
 100::/8
 200::/7

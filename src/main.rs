@@ -32,6 +32,7 @@ enum ConfigProtocol {
 struct Config {
 	invert: bool,
 	complete: bool,
+	aggregate: bool,
 	protocol: ConfigProtocol,
 }
 use std::option::Option;
@@ -47,12 +48,12 @@ extern crate getopts;
 #[cfg(not(feature = "clap"))]
 fn print_usage(program: &str, opts: getopts::Options) {
 	print_stderr!("{} {}\n{}\n{}\n\n", NAME, VERSION, AUTHORS, DESC);
-	let brief = format!("Usage: {} [-i] <-4|-6>", program);
+	let brief = format!("Usage: {} [-i] [-a|-c] <-4|-6>", program);
 	print_stderr!("{}", opts.usage(&brief));
 }
 
 #[cfg(not(feature = "clap"))]
-fn get_options() -> Option<Config> {
+fn get_config() -> Option<Config> {
 	use getopts::Options;
 	use std::env;
 
@@ -63,6 +64,7 @@ fn get_options() -> Option<Config> {
 	opts.optflag("4", "ipv4", "IPv4 mode");
 	opts.optflag("6", "ipv6", "IPv6 mode");
 	opts.optflag("c", "complete", "Complete covering list of ranges");
+	opts.optflag("a", "aggregate", "Aggregate including ranges");
 	opts.optflag("i", "invert", "Invert input list");
 	opts.optflag("h", "help", "print this help menu");
 	let matches = match opts.parse(&args[1..]) {
@@ -77,15 +79,21 @@ fn get_options() -> Option<Config> {
 		print_usage(&program, opts);
 		return None;
 	}
+	if matches.opt_present("complete") && matches.opt_present("aggregate") {
+		println_stderr!("Error: Can either show aggregated or complete list");
+		print_usage(&program, opts);
+		return None;
+	}
 	if matches.opt_present("ipv4") == matches.opt_present("ipv6") {
-		println_stderr!("Need exactly one of --ipv4/--ipv6.");
+		println_stderr!("Error: Need exactly one of --ipv4/--ipv6.");
 		print_usage(&program, opts);
 		return None;
 	}
 
 	Option::Some(Config{
-		complete: matches.opt_present("complete"),
 		invert: matches.opt_present("invert"),
+		complete: matches.opt_present("complete"),
+		aggregate: matches.opt_present("aggregate"),
 		protocol: if matches.opt_present("ipv4") { ConfigProtocol::IPv4 } else { ConfigProtocol::IPv6 },
 	})
 }
@@ -95,7 +103,7 @@ fn get_options() -> Option<Config> {
 extern crate clap;
 
 #[cfg(feature = "clap")]
-fn get_options() -> Option<Config> {
+fn get_config() -> Option<Config> {
 	let matches = clap_app!(
 		@app (clap::App::new(NAME))
 		(version: VERSION)
@@ -106,13 +114,17 @@ fn get_options() -> Option<Config> {
 			(@arg ipv4: short("4") "IPv4 mode")
 			(@arg ipv6: short("6") "IPv6 mode")
 		)
-		(@arg complete: -c "Complete covering list of ranges")
+		(@group operation =>
+			(@arg complete: -c "Complete covering list of ranges")
+			(@arg aggregate: -a "Aggregate including ranges")
+		)
 		(@arg invert: -i "Invert input list")
 	).get_matches();
 
 	Option::Some(Config{
-		complete: matches.is_present("complete"),
 		invert: matches.is_present("invert"),
+		complete: matches.is_present("complete"),
+		aggregate: matches.is_present("aggregate"),
 		protocol: if matches.is_present("ipv4") { ConfigProtocol::IPv4 } else { ConfigProtocol::IPv6 },
 	})
 }
@@ -146,21 +158,32 @@ fn show_complete<A: cidr::IpAddress>(set: &radixset::RadixSet<IpCidr<A>>, invert
 	}
 }
 
+fn show_aggregate<A: cidr::IpAddress>(set: &radixset::RadixSet<IpCidr<A>>, invert: bool) {
+	for def in radixset::def::Definition::complete(set, invert).into_iter() {
+		if def.include != invert {
+			println!("{}", &def.prefix);
+		}
+	}
+}
+
+fn show<A: cidr::IpAddress>(set: &radixset::RadixSet<IpCidr<A>>, config: &Config) {
+	if config.complete {
+		show_complete(set, config.invert);
+	} else if config.aggregate {
+		show_aggregate(set, config.invert);
+	} else {
+		show_compress(set, config.invert);
+	}
+}
+
 fn main() {
-	let options = match get_options() {
+	let config = match get_config() {
 		Some(o) => o,
 		None => return,
 	};
 
-	if options.complete {
-		match options.protocol {
-			ConfigProtocol::IPv4 => show_complete(&read::<Ipv4Addr>(), options.invert),
-			ConfigProtocol::IPv6 => show_complete(&read::<Ipv6Addr>(), options.invert),
-		}
-	} else {
-		match options.protocol {
-			ConfigProtocol::IPv4 => show_compress(&read::<Ipv4Addr>(), options.invert),
-			ConfigProtocol::IPv6 => show_compress(&read::<Ipv6Addr>(), options.invert),
-		}
+	match config.protocol {
+		ConfigProtocol::IPv4 => show(&read::<Ipv4Addr>(), &config),
+		ConfigProtocol::IPv6 => show(&read::<Ipv6Addr>(), &config),
 	}
 }
