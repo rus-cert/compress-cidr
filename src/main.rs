@@ -166,7 +166,7 @@ fn show_complete<A: cidr::IpAddress>(set: &radixset::RadixSet<IpCidr<A>>, invert
 
 fn show_aggregate<A: cidr::IpAddress>(set: &radixset::RadixSet<IpCidr<A>>, invert: bool) {
 	for def in radixset::def::Definition::complete(set, invert).into_iter() {
-		if def.include != invert {
+		if def.include {
 			println!("{}", def.prefix);
 		}
 	}

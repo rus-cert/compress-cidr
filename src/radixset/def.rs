@@ -139,7 +139,7 @@ impl<S: BitString> Definition<S> {
 			// use recursion to produce sorted list of definitions
 			let mut excl_def = Definition{
 				prefix: branch_key.clone(),
-				include: false,
+				include: invert,
 			};
 			excl_def.prefix.flip(from_len);
 			excl_def.prefix.clip(from_len + 1);
@@ -163,7 +163,7 @@ impl<S: BitString> Definition<S> {
 			Node::Leaf(ref leaf) => {
 				list.push(Definition{
 					prefix: leaf.key().clone(),
-					include: true,
+					include: !invert,
 				});
 			},
 			Node::InnerNode(ref inner) => {
@@ -181,7 +181,10 @@ impl<S: BitString> Definition<S> {
 				Self::complete_branch(0, n, &mut list, invert);
 				list
 			},
-			None => vec!(),
+			None => vec!(Definition{
+				prefix: S::null(),
+				include: invert,
+			}),
 		}
 	}
 }
