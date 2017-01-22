@@ -3,9 +3,15 @@ extern crate num_traits;
 pub mod bitstrings;
 pub mod cidr;
 pub mod radixset;
+pub mod write_lines;
+
+#[cfg(test)]
+mod tests;
+
+use cidr::IpCidr;
+use write_lines::WriteLinesIter;
 
 use std::net::{Ipv4Addr,Ipv6Addr};
-use cidr::IpCidr;
 use std::str::FromStr;
 
 macro_rules! print_stderr(
@@ -147,21 +153,21 @@ fn read<A: cidr::IpAddress>() -> radixset::RadixSet<IpCidr<A>> {
 }
 
 fn show_compress<A: cidr::IpAddress>(set: &radixset::RadixSet<IpCidr<A>>, invert: bool) {
-	for def in radixset::def::Definition::compress(set, invert).into_iter() {
-		println!("{}", &def);
-	}
+	print!("{}", WriteLinesIter::from(
+		radixset::def::Definition::compress(set, invert)
+	));
 }
 
 fn show_complete<A: cidr::IpAddress>(set: &radixset::RadixSet<IpCidr<A>>, invert: bool) {
-	for def in radixset::def::Definition::complete(set, invert).into_iter() {
-		println!("{}", &def);
-	}
+	print!("{}", WriteLinesIter::from(
+		radixset::def::Definition::complete(set, invert)
+	))
 }
 
 fn show_aggregate<A: cidr::IpAddress>(set: &radixset::RadixSet<IpCidr<A>>, invert: bool) {
 	for def in radixset::def::Definition::complete(set, invert).into_iter() {
 		if def.include != invert {
-			println!("{}", &def.prefix);
+			println!("{}", def.prefix);
 		}
 	}
 }
