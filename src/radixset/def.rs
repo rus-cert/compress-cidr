@@ -108,6 +108,13 @@ impl<S: BitString> Definition<S> {
 		}
 	}
 
+	/// Returns a minimal list of definitions to cover the (possibly
+	/// inverted) set of ranges (i.e. (sub-)ranges to include and to
+	/// exclude); ranges not covered in the result are excluded by
+	/// default.
+	///
+	/// Returned ranges are not prefix free; the longest matching prefix
+	/// for an address specifies whether it is included or excluded.
 	pub fn compress(s: &RadixSet<S>, invert: bool) -> Vec<Definition<S>> {
 		if invert {
 			match s.root() {
@@ -174,6 +181,12 @@ impl<S: BitString> Definition<S> {
 		}
 	}
 
+	/// Returns a minimal list of definitions to cover the (possibly
+	/// inverted) set of ranges (i.e. (sub-)ranges to include and to
+	/// exclude).
+	///
+	/// Returned ranges are not overlapping, and cover all possible
+	/// addresses.
 	pub fn complete(s: &RadixSet<S>, invert: bool) -> Vec<Definition<S>> {
 		match s.root() {
 			Some(ref n) => {
