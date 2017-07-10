@@ -1,18 +1,21 @@
 extern crate num_traits;
 
-pub mod bitstrings;
-pub mod cidr;
-pub mod radixset;
+extern crate cidr;
+extern crate bitstring;
+extern crate bitstring_trees;
+
+use bitstring_trees::set::RadixSet;
+
+pub mod set_def;
 pub mod write_lines;
 
 #[cfg(test)]
 mod tests;
 
-use cidr::IpCidr;
 use write_lines::WriteLinesIter;
 
-use std::net::{Ipv4Addr,Ipv6Addr};
 use std::str::FromStr;
+use std::fmt;
 
 macro_rules! print_stderr(
 	($($arg:tt)*) => { {
@@ -31,6 +34,7 @@ macro_rules! println_stderr(
 );
 
 enum ConfigProtocol {
+	Any,
 	IPv4,
 	IPv6,
 }
@@ -54,7 +58,7 @@ extern crate getopts;
 #[cfg(not(feature = "clap"))]
 fn print_usage(program: &str, opts: getopts::Options) {
 	print_stderr!("{} {}\n{}\n{}\n\n", NAME, VERSION, AUTHORS, DESC);
-	let brief = format!("Usage: {} [-i] [-a|-c] <-4|-6>", program);
+	let brief = format!("Usage: {} [-i] [-a|-c] [-4|-6]", program);
 	print_stderr!("{}", opts.usage(&brief));
 }
 
@@ -90,8 +94,8 @@ fn get_config() -> Option<Config> {
 		print_usage(&program, opts);
 		return None;
 	}
-	if matches.opt_present("ipv4") == matches.opt_present("ipv6") {
-		println_stderr!("Error: Need exactly one of --ipv4/--ipv6.");
+	if matches.opt_present("ipv4") && matches.opt_present("ipv6") {
+		println_stderr!("Error: Need at most one of --ipv4/--ipv6.");
 		print_usage(&program, opts);
 		return None;
 	}
@@ -100,7 +104,13 @@ fn get_config() -> Option<Config> {
 		invert: matches.opt_present("invert"),
 		complete: matches.opt_present("complete"),
 		aggregate: matches.opt_present("aggregate"),
-		protocol: if matches.opt_present("ipv4") { ConfigProtocol::IPv4 } else { ConfigProtocol::IPv6 },
+		protocol: if matches.opt_present("ipv4") {
+			ConfigProtocol::IPv4
+		} else if matches.opt_present("ipv6") {
+			ConfigProtocol::IPv6
+		} else {
+			ConfigProtocol::Any
+		},
 	})
 }
 
@@ -135,44 +145,64 @@ fn get_config() -> Option<Config> {
 	})
 }
 
-fn read<A: cidr::IpAddress>() -> radixset::RadixSet<IpCidr<A>> {
+fn read<C>() -> RadixSet<C>
+where
+	C: bitstring::BitString+FromStr+fmt::Display+Clone,
+	<C as FromStr>::Err: fmt::Debug,
+{
 	use std::io::{self,BufRead};
 
 	let stdin = io::stdin();
 	let locked_stdin = stdin.lock();
 
-	let mut s = radixset::RadixSet::<IpCidr<A>>::default();
+	let mut s = RadixSet::<C>::default();
 	for line in locked_stdin.lines() {
 		let l = line.unwrap();
 		if !l.is_empty() && l.as_bytes()[0] != ('#' as u8) {
-			s.insert(&IpCidr::<A>::from_str(&l).unwrap());
+			s.insert(C::from_str(&l).unwrap());
 		}
 	}
 
 	s
 }
 
-fn show_compress<A: cidr::IpAddress>(set: &radixset::RadixSet<IpCidr<A>>, invert: bool) {
+fn show_compress<C>(set: &RadixSet<C>, invert: bool)
+where
+	C: bitstring::BitString+FromStr+fmt::Display+Clone,
+	<C as FromStr>::Err: fmt::Debug,
+{
 	print!("{}", WriteLinesIter::from(
-		radixset::def::Definition::compress(set, invert)
+		set_def::Definition::compress(set, invert)
 	));
 }
 
-fn show_complete<A: cidr::IpAddress>(set: &radixset::RadixSet<IpCidr<A>>, invert: bool) {
+fn show_complete<C: bitstring::BitString>(set: &RadixSet<C>, invert: bool)
+where
+	C: bitstring::BitString+FromStr+fmt::Display+Clone,
+	<C as FromStr>::Err: fmt::Debug,
+{
 	print!("{}", WriteLinesIter::from(
-		radixset::def::Definition::complete(set, invert)
+		set_def::Definition::complete(set, invert)
 	))
 }
 
-fn show_aggregate<A: cidr::IpAddress>(set: &radixset::RadixSet<IpCidr<A>>, invert: bool) {
-	for def in radixset::def::Definition::complete(set, invert).into_iter() {
+fn show_aggregate<C: bitstring::BitString>(set: &RadixSet<C>, invert: bool)
+where
+	C: bitstring::BitString+FromStr+fmt::Display+Clone,
+	<C as FromStr>::Err: fmt::Debug,
+{
+	for def in set_def::Definition::complete(set, invert).into_iter() {
 		if def.include {
 			println!("{}", def.prefix);
 		}
 	}
 }
 
-fn show<A: cidr::IpAddress>(set: &radixset::RadixSet<IpCidr<A>>, config: &Config) {
+fn show<C: bitstring::BitString>(set: &RadixSet<C>, config: &Config)
+where
+	C: bitstring::BitString+FromStr+fmt::Display+Clone,
+	<C as FromStr>::Err: fmt::Debug,
+{
 	if config.complete {
 		show_complete(set, config.invert);
 	} else if config.aggregate {
@@ -189,7 +219,8 @@ fn main() {
 	};
 
 	match config.protocol {
-		ConfigProtocol::IPv4 => show(&read::<Ipv4Addr>(), &config),
-		ConfigProtocol::IPv6 => show(&read::<Ipv6Addr>(), &config),
+		ConfigProtocol::IPv4 => show(&read::<cidr::Ipv4Cidr>(), &config),
+		ConfigProtocol::IPv6 => show(&read::<cidr::Ipv6Cidr>(), &config),
+		ConfigProtocol::Any => show(&read::<cidr::AnyIpCidr>(), &config),
 	}
 }

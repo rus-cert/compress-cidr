@@ -1,6 +1,6 @@
 /* create "minimal" definition with positive+negative prefixes */
-use super::super::bitstrings::BitString;
-use super::{RadixSet,Node};
+use bitstring::BitString;
+use bitstring_trees::set::{RadixSet,Node};
 use std::fmt;
 
 #[derive(Clone,PartialEq,Eq,PartialOrd,Ord,Hash)]
@@ -9,7 +9,7 @@ pub struct Definition<S: BitString> {
 	pub include: bool,
 }
 
-impl<S: BitString> Definition<S> {
+impl<S: BitString+Clone> Definition<S> {
 	/// Returns a minimal list of definitions (i.e. (sub-)ranges to
 	/// include and to exclude)
 	///

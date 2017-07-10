@@ -1,7 +1,7 @@
 use cidr::Ipv4Cidr;
 use std::str::FromStr;
-use radixset::RadixSet;
-use radixset::def::Definition;
+use bitstring_trees::set::RadixSet;
+use set_def::Definition;
 
 use write_lines::WriteLinesIter;
 
@@ -40,7 +40,7 @@ fn compress_ipv4_empty() {
 fn compress_ipv4_any() {
 	let addr = Ipv4Cidr::from_str("0.0.0.0/0").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr);
+	rs.insert(addr);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -60,7 +60,7 @@ fn compress_ipv4_any() {
 fn compress_ipv4_single_firstbit_zero() {
 	let addr = Ipv4Cidr::from_str("0.0.0.0/1").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr);
+	rs.insert(addr);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -81,7 +81,7 @@ fn compress_ipv4_single_firstbit_zero() {
 fn compress_ipv4_single_firstbit_one() {
 	let addr = Ipv4Cidr::from_str("128.0.0.0/1").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr);
+	rs.insert(addr);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -102,7 +102,7 @@ fn compress_ipv4_single_firstbit_one() {
 fn compress_ipv4_single_lastbit_zero() {
 	let addr = Ipv4Cidr::from_str("0.0.0.0/32").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr);
+	rs.insert(addr);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -124,7 +124,7 @@ fn compress_ipv4_single_lastbit_zero() {
 fn compress_ipv4_single_lastbit_one() {
 	let addr = Ipv4Cidr::from_str("0.0.0.1/32").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr);
+	rs.insert(addr);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -147,8 +147,8 @@ fn compress_ipv4_mixed_1a() {
 	let addr1 = Ipv4Cidr::from_str("0.0.0.0/1").unwrap();
 	let addr2 = Ipv4Cidr::from_str("128.0.0.0/32").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
+	rs.insert(addr1);
+	rs.insert(addr2);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -172,8 +172,8 @@ fn compress_ipv4_mixed_1b() {
 	let addr1 = Ipv4Cidr::from_str("0.0.0.0/2").unwrap();
 	let addr2 = Ipv4Cidr::from_str("64.0.0.0/32").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
+	rs.insert(addr1);
+	rs.insert(addr2);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -198,8 +198,8 @@ fn compress_ipv4_mixed_1c() {
 	let addr1 = Ipv4Cidr::from_str("0.0.0.0/3").unwrap();
 	let addr2 = Ipv4Cidr::from_str("32.0.0.0/32").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
+	rs.insert(addr1);
+	rs.insert(addr2);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -224,8 +224,8 @@ fn compress_ipv4_mixed_1d() {
 	let addr1 = Ipv4Cidr::from_str("0.0.0.0/9").unwrap();
 	let addr2 = Ipv4Cidr::from_str("0.128.0.0/32").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
+	rs.insert(addr1);
+	rs.insert(addr2);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -250,8 +250,8 @@ fn compress_ipv4_mixed_1a_flipped() {
 	let addr1 = Ipv4Cidr::from_str("0.0.0.0/32").unwrap();
 	let addr2 = Ipv4Cidr::from_str("128.0.0.0/1").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
+	rs.insert(addr1);
+	rs.insert(addr2);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -275,8 +275,8 @@ fn compress_ipv4_mixed_1b_flipped_1() {
 	let addr1 = Ipv4Cidr::from_str("128.0.0.0/2").unwrap();
 	let addr2 = Ipv4Cidr::from_str("192.0.0.0/32").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
+	rs.insert(addr1);
+	rs.insert(addr2);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -301,8 +301,8 @@ fn compress_ipv4_mixed_1b_flipped_2() {
 	let addr1 = Ipv4Cidr::from_str("0.0.0.0/32").unwrap();
 	let addr2 = Ipv4Cidr::from_str("64.0.0.0/2").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
+	rs.insert(addr1);
+	rs.insert(addr2);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -327,8 +327,8 @@ fn compress_ipv4_mixed_1c_flipped_1() {
 	let addr1 = Ipv4Cidr::from_str("128.0.0.0/3").unwrap();
 	let addr2 = Ipv4Cidr::from_str("160.0.0.0/32").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
+	rs.insert(addr1);
+	rs.insert(addr2);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -353,8 +353,8 @@ fn compress_ipv4_mixed_1c_flipped_2() {
 	let addr1 = Ipv4Cidr::from_str("0.0.0.0/32").unwrap();
 	let addr2 = Ipv4Cidr::from_str("32.0.0.0/3").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
+	rs.insert(addr1);
+	rs.insert(addr2);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -379,8 +379,8 @@ fn compress_ipv4_mixed_1d_flipped_1() {
 	let addr1 = Ipv4Cidr::from_str("128.0.0.0/9").unwrap();
 	let addr2 = Ipv4Cidr::from_str("128.128.0.0/32").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
+	rs.insert(addr1);
+	rs.insert(addr2);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -405,8 +405,8 @@ fn compress_ipv4_mixed_1d_flipped_2() {
 	let addr1 = Ipv4Cidr::from_str("0.0.0.0/32").unwrap();
 	let addr2 = Ipv4Cidr::from_str("0.128.0.0/9").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
+	rs.insert(addr1);
+	rs.insert(addr2);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -432,9 +432,9 @@ fn compress_ipv4_mixed_2a() {
 	let addr2 = Ipv4Cidr::from_str("128.0.0.0/32").unwrap();
 	let addr3 = Ipv4Cidr::from_str("128.0.1.0/32").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
-	rs.insert(&addr3);
+	rs.insert(addr1);
+	rs.insert(addr2);
+	rs.insert(addr3);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -461,9 +461,9 @@ fn compress_ipv4_mixed_2b() {
 	let addr2 = Ipv4Cidr::from_str("64.0.0.0/32").unwrap();
 	let addr3 = Ipv4Cidr::from_str("64.0.1.0/32").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
-	rs.insert(&addr3);
+	rs.insert(addr1);
+	rs.insert(addr2);
+	rs.insert(addr3);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -491,9 +491,9 @@ fn compress_ipv4_mixed_2c() {
 	let addr2 = Ipv4Cidr::from_str("32.0.0.0/32").unwrap();
 	let addr3 = Ipv4Cidr::from_str("32.0.1.0/32").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
-	rs.insert(&addr3);
+	rs.insert(addr1);
+	rs.insert(addr2);
+	rs.insert(addr3);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -521,9 +521,9 @@ fn compress_ipv4_mixed_2d() {
 	let addr2 = Ipv4Cidr::from_str("0.128.0.0/32").unwrap();
 	let addr3 = Ipv4Cidr::from_str("0.128.1.0/32").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
-	rs.insert(&addr3);
+	rs.insert(addr1);
+	rs.insert(addr2);
+	rs.insert(addr3);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -551,9 +551,9 @@ fn compress_ipv4_mixed_2a_flipped() {
 	let addr2 = Ipv4Cidr::from_str("0.0.1.0/32").unwrap();
 	let addr3 = Ipv4Cidr::from_str("128.0.0.0/1").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
-	rs.insert(&addr3);
+	rs.insert(addr1);
+	rs.insert(addr2);
+	rs.insert(addr3);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -580,9 +580,9 @@ fn compress_ipv4_mixed_2b_flipped() {
 	let addr2 = Ipv4Cidr::from_str("0.0.1.0/32").unwrap();
 	let addr3 = Ipv4Cidr::from_str("64.0.0.0/2").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
-	rs.insert(&addr3);
+	rs.insert(addr1);
+	rs.insert(addr2);
+	rs.insert(addr3);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -610,9 +610,9 @@ fn compress_ipv4_mixed_2c_flipped() {
 	let addr2 = Ipv4Cidr::from_str("0.0.1.0/32").unwrap();
 	let addr3 = Ipv4Cidr::from_str("32.0.0.0/3").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
-	rs.insert(&addr3);
+	rs.insert(addr1);
+	rs.insert(addr2);
+	rs.insert(addr3);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -640,9 +640,9 @@ fn compress_ipv4_mixed_2d_flipped() {
 	let addr2 = Ipv4Cidr::from_str("0.0.1.0/32").unwrap();
 	let addr3 = Ipv4Cidr::from_str("0.128.0.0/9").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
-	rs.insert(&addr3);
+	rs.insert(addr1);
+	rs.insert(addr2);
+	rs.insert(addr3);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -669,8 +669,8 @@ fn compress_ipv4_mixed_3() {
 	let addr1 = Ipv4Cidr::from_str("0.0.0.0/32").unwrap();
 	let addr2 = Ipv4Cidr::from_str("128.0.0.0/32").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
+	rs.insert(addr1);
+	rs.insert(addr2);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -695,8 +695,8 @@ fn compress_ipv4_mixed_4() {
 	let addr1 = Ipv4Cidr::from_str("128.0.0.0/32").unwrap();
 	let addr2 = Ipv4Cidr::from_str("128.1.0.0/32").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr1);
-	rs.insert(&addr2);
+	rs.insert(addr1);
+	rs.insert(addr2);
 
 	assert_eq!(
 		format_lines(Definition::compress(&rs, false)),
@@ -741,7 +741,7 @@ fn complete_ipv4_empty() {
 fn complete_ipv4_any() {
 	let addr = Ipv4Cidr::from_str("0.0.0.0/0").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr);
+	rs.insert(addr);
 
 	assert_eq!(
 		format_lines(Definition::complete(&rs, false)),
@@ -762,7 +762,7 @@ fn complete_ipv4_any() {
 fn complete_ipv4_single_firstbit_zero() {
 	let addr = Ipv4Cidr::from_str("0.0.0.0/1").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr);
+	rs.insert(addr);
 
 	assert_eq!(
 		format_lines(Definition::complete(&rs, false)),
@@ -785,7 +785,7 @@ fn complete_ipv4_single_firstbit_zero() {
 fn complete_ipv4_single_firstbit_one() {
 	let addr = Ipv4Cidr::from_str("128.0.0.0/1").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr);
+	rs.insert(addr);
 
 	assert_eq!(
 		format_lines(Definition::complete(&rs, false)),
@@ -808,7 +808,7 @@ fn complete_ipv4_single_firstbit_one() {
 fn complete_ipv4_single_lastbit_zero() {
 	let addr = Ipv4Cidr::from_str("0.0.0.0/8").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr);
+	rs.insert(addr);
 
 	assert_eq!(
 		format_lines(Definition::complete(&rs, false)),
@@ -845,7 +845,7 @@ fn complete_ipv4_single_lastbit_zero() {
 fn complete_ipv4_single_lastbit_one() {
 	let addr = Ipv4Cidr::from_str("1.0.0.0/8").unwrap();
 	let mut rs : RadixSet<Ipv4Cidr> = Default::default();
-	rs.insert(&addr);
+	rs.insert(addr);
 
 	assert_eq!(
 		format_lines(Definition::complete(&rs, false)),
